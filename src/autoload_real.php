@@ -30,66 +30,40 @@ class ComposerOverLoaderInit
         self::$loader = $loader = new \ComposerOverload\ClassOverLoader();
         spl_autoload_unregister(array('ComposerOverLoaderInit', 'loadClassLoader'));
 
-        // namepaces
+        $composerDirectory = null;
         $files = array(
-            __DIR__.'/../vendor/composer/autoload_namespaces.php',
-            __DIR__.'/../../composer/autoload_namespaces.php',
+            __DIR__.'/../vendor/composer/autoload_real.php',
+            __DIR__.'/../../../composer/autoload_real.php',
         );
         foreach ($files as $file) {
             if (file_exists($file)) {
-                $map = require $file;
-                foreach ($map as $namespace => $path) {
-                    $loader->set($namespace, $path);
-                }
-                break;
+                $composerDirectory = substr($file, 0, strrpos($file, "/autoload_real.php"));
             }
         }
 
-        // psr4
-        $files = array(
-            __DIR__.'/../vendor/composer/autoload_psr4.php',
-            __DIR__.'/../../composer/autoload_psr4.php',
-        );
-        foreach ($files as $file) {
-            if (file_exists($file)) {
-                $map = require $file;
-                foreach ($map as $namespace => $path) {
-                    $loader->set($namespace, $path);
-                }
-                break;
-            }
+        ///
+
+        $map = require $composerDirectory.'/autoload_namespaces.php';
+        foreach ($map as $namespace => $path) {
+            $loader->set($namespace, $path);
         }
 
-        // classmap
-        $files = array(
-            __DIR__.'/../vendor/composer/autoload_classmap.php',
-            __DIR__.'/../../composer/autoload_classmap.php',
-        );
-        foreach ($files as $file) {
-            if (file_exists($file)) {
-                $classMap = require $file;
-                if ($classMap) {
-                    $loader->addClassMap($classMap);
-                }
-                break;
-            }
+        $map = require $composerDirectory.'/autoload_psr4.php';
+        foreach ($map as $namespace => $path) {
+            $loader->setPsr4($namespace, $path);
+        }
+
+        $classMap = require $composerDirectory.'/autoload_classmap.php';
+        if ($classMap) {
+            $loader->addClassMap($classMap);
         }
 
         $loader->register(true);
 
-        // includefiles
-        $files = array(
-            __DIR__.'/../vendor/composer/autoload_files.php',
-            __DIR__.'/../../composer/autoload_files.php',
-        );
-        foreach ($files as $file) {
-            if (file_exists($file)) {
-                $includeFiles = require $file;
-                foreach ($includeFiles as $fileIdentifier => $file) {
-                    composerRequire($fileIdentifier, $file);
-                }
-                break;
-            }
+        $includeFiles = require $composerDirectory.'/autoload_files.php';
+
+        foreach ($includeFiles as $fileIdentifier => $file) {
+            composerRequire($fileIdentifier, $file);
         }
 
         return $loader;

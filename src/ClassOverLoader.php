@@ -14,15 +14,14 @@ namespace ComposerOverload;
 if (!\function_exists("Composer\Autoload\includeFile")) {
     $files = array(
         __DIR__.'/../vendor/composer/ClassLoader.php',
-        __DIR__.'/../../composer/ClassLoader.php',
+        __DIR__.'/../../../composer/ClassLoader.php',
     );
-
     foreach ($files as $file) {
         if (file_exists($file)) {
             $loader = require_once $file;
             break;
         }
-    }
+    }    
 }
 
 class ClassOverLoader extends \Composer\Autoload\ClassLoader
